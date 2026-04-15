@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="App Móvil de Emergencias 911 - República Dominicana" />
+    <meta name="theme-color" content="#0a0c10" />
+    <title>911 Emergencia</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Pantalla de Bienvenida -->
+    <div id="welcome-screen" class="welcome-screen">
+      <div class="welcome-logo">
+        <i data-lucide="shield-alert" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h2>911 Responder</h2>
+      <p>Sistema de Gestión de Trauma y Camas en Tiempo Real</p>
+      <button class="btn-start" id="btn-start">INICIAR TURNO</button>
+    </div>
+
+    <div id="app">
+      <!-- Header Flotante -->
+      <header class="mobile-header">
+        <div class="brand-pill">
+          <div class="pulse-tiny"></div>
+          <h1>911 Emergencia</h1>
+        </div>
+        <div class="brand-pill" style="padding: 6px; width: 36px; height: 36px; justify-content: center;">
+          <i data-lucide="user" style="width: 18px; height: 18px; color: var(--text-dim);"></i>
+        </div>
+      </header>
+
+      <!-- Contenedor de Vistas -->
+      <main id="main-content" style="flex: 1; position: relative; overflow: hidden;">
+        
+        <!-- VISTA: MAPA (ACTIVA POR DEFECTO) -->
+        <div id="view-map" class="tab-view active">
+          <!-- Mapa Principal -->
+          <div id="map" style="height: 100%; width: 100%;"></div>
+
+          <!-- Acciones Flotantes -->
+          <div class="fab-container">
+            <button class="fab" id="locate-btn"><i data-lucide="crosshair"></i></button>
+            <button class="fab" id="toggle-layer"><i data-lucide="layers"></i></button>
+          </div>
+
+          <!-- Bottom Sheet -->
+          <div id="bottom-sheet" class="bottom-sheet collapsed">
+            <div class="sheet-handle" id="sheet-handle">
+              <div class="handle-bar"></div>
+            </div>
+            <div class="sheet-content">
+              <div class="sheet-title">
+                <span>Hospitales Cercanos</span>
+                <span style="font-size: 0.75rem; color: var(--secondary);" id="hospital-count">3 encontrados</span>
+              </div>
+              <div id="hospital-list">
+                <!-- Dinámico -->
+              </div>
+              <button class="btn-start" id="notify-btn" style="margin-top: 10px; display: none;">
+                <i data-lucide="bell" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;"></i>
+                NOTIFICAR INGRESO
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA: ALERTAS -->
+        <div id="view-activity" class="tab-view">
+          <div style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <h2>Alertas Críticas</h2>
+              <span class="badge-closest" style="background: var(--danger); animation: pulse 1s infinite;">¡VIVO!</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Alerta 1 -->
+              <div class="hospital-card" style="border-left: 5px solid var(--danger); background: rgba(235, 77, 75, 0.05);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: var(--danger); font-weight: 700; font-size: 0.75rem;">CÓDIGO ROJO - TRAUMA</span>
+                  <span style="font-size: 0.75rem; color: var(--text-dim);">18:42</span>
+                </div>
+                <h3 style="margin-bottom: 4px;">Accidente Av. Jacobo Majluta</h3>
+                <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 12px;">Colisión múltiple, 3 víctimas reportadas. Se solicita Unidad 04 para traslado al Ney Arias.</p>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn-start" style="padding: 8px 16px; font-size: 0.75rem;">ACEPTAR TRASLADO</button>
+                  <button class="btn-start" style="padding: 8px 16px; font-size: 0.75rem; background: transparent; border: 1px solid #30363d;">DETALLES</button>
+                </div>
+              </div>
+
+              <!-- Alerta 2 -->
+              <div class="hospital-card" style="border-left: 5px solid var(--warning);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: var(--warning); font-weight: 700; font-size: 0.75rem;">AVISO COE</span>
+                  <span style="font-size: 0.75rem; color: var(--text-dim);">18:15</span>
+                </div>
+                <h3 style="margin-bottom: 4px;">Calle Cerrada: Av. Duarte</h3>
+                <p style="font-size: 0.85rem; color: var(--text-dim);">Bloqueo por inundación cerca de la Av. Mella. Evite la zona en rutas de emergencia.</p>
+              </div>
+
+              <!-- Alerta 3 -->
+              <div class="hospital-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: var(--success); font-weight: 700; font-size: 0.75rem;">SISTEMA</span>
+                  <span style="font-size: 0.75rem; color: var(--text-dim);">17:50</span>
+                </div>
+                <h3>Camas Libres: Darío Contreras</h3>
+                <p style="font-size: 0.85rem; color: var(--text-dim);">Se han liberado 2 camas en el área de Trauma General.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA: RUTAS -->
+        <div id="view-navigation" class="tab-view">
+          <div style="padding: 24px;">
+            <h2 style="margin-bottom: 24px;">Estado de Navegación</h2>
+            
+            <div style="background: var(--bg-card); border: 1px solid #30363d; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 40px; height: 40px; background: rgba(8, 217, 214, 0.1); border-radius: 10px; display: flex; justify-content: center; align-items: center;">
+                  <i data-lucide="navigation" style="color: var(--secondary);"></i>
+                </div>
+                <div>
+                  <h3 style="font-size: 1rem;">Ruta en Curso</h3>
+                  <p style="font-size: 0.75rem; color: var(--text-dim);">Esperando selección de destino</p>
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                  <span style="display: block; font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">Tráfico Promedio</span>
+                  <span style="font-weight: 700; color: var(--success);">FLUIDO</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                  <span style="display: block; font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">Zonas Obstruidas</span>
+                  <span style="font-weight: 700; color: var(--warning);">2 ACTIVAS</span>
+                </div>
+              </div>
+
+              <button class="btn-start" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px; background: #25a18e;">
+                <i data-lucide="navigation-2" style="width: 18px; height: 18px;"></i>
+                ABRIR EN WAZE / GPS
+              </button>
+            </div>
+            
+            <h3 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--text-dim);">Rutas Guardadas</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="padding: 12px; background: var(--bg-card); border-radius: 10px; font-size: 0.85rem; display: flex; justify-content: space-between;">
+                <span>Base 911 -> Ney Arias</span>
+                <span style="color: var(--secondary);">12 min</span>
+              </div>
+              <div style="padding: 12px; background: var(--bg-card); border-radius: 10px; font-size: 0.85rem; display: flex; justify-content: space-between;">
+                <span>Base 911 -> Darío Contreras</span>
+                <span style="color: var(--secondary);">8 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA: AJUSTES -->
+        <div id="view-settings" class="tab-view">
+          <div style="padding: 24px;">
+            <h2 style="margin-bottom: 24px;">Configuración Interna</h2>
+            
+            <div style="background: var(--bg-card); border-radius: 20px; overflow: hidden; border: 1px solid #30363d;">
+              <div style="padding: 16px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 48px; height: 48px; background: var(--primary); border-radius: 12px; display: flex; justify-content: center; align-items: center; color: white;">
+                  <i data-lucide="user" style="width: 28px; height: 28px;"></i>
+                </div>
+                <div>
+                  <h3 style="font-size: 1rem;">Paramédico #412</h3>
+                  <p style="font-size: 0.75rem; color: var(--text-dim);">Turno: Matutino (Santo Domingo)</p>
+                </div>
+              </div>
+
+              <div style="padding: 20px;">
+                <div style="margin-bottom: 24px;">
+                  <label style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Identificador de Unidad</label>
+                  <select style="width: 100%; background: #0a0c10; color: white; border: 1px solid #30363d; padding: 12px; border-radius: 8px; font-family: inherit;">
+                    <option>AMBULANCIA UN-04 (VILLA MELLA)</option>
+                    <option>AMBULANCIA UN-10 (SDE)</option>
+                    <option>AMBULANCIA UN-22 (CENTRO)</option>
+                  </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Sonidos de Emergencia</span>
+                    <div style="width: 44px; height: 22px; background: var(--primary); border-radius: 11px; position: relative;">
+                      <div style="position: absolute; right: 2px; top: 2px; width: 18px; height: 18px; background: white; border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Transmisión en Vivo (Cámara)</span>
+                    <div style="width: 44px; height: 22px; background: #30363d; border-radius: 11px; position: relative;">
+                      <div style="position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; background: white; border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Modo de Respuesta Rápida</span>
+                    <div style="width: 44px; height: 22px; background: var(--primary); border-radius: 11px; position: relative;">
+                      <div style="position: absolute; right: 2px; top: 2px; width: 18px; height: 18px; background: white; border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <button style="width: 100%; margin-top: 30px; background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 14px; border-radius: 12px; font-weight: 700;">
+                  FINALIZAR TURNO / SALIR
+                </button>
+              </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 24px; font-size: 0.65rem; color: var(--text-dim);">VERSIÓN PROTO 1.4.2 - 911 DOMINICANA</p>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Navegación Inferior -->
+      <nav class="bottom-nav">
+        <div class="nav-item active" data-tab="map">
+          <i data-lucide="map"></i>
+          <span>Mapa</span>
+        </div>
+        <div class="nav-item" data-tab="activity">
+          <i data-lucide="activity"></i>
+          <span>Alertas</span>
+        </div>
+        <div class="nav-item" data-tab="navigation">
+          <i data-lucide="navigation"></i>
+          <span>Rutas</span>
+        </div>
+        <div class="nav-item" data-tab="settings" data-tab="settings">
+          <i data-lucide="settings"></i>
+          <span>Ajustes</span>
+        </div>
+      </nav>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
