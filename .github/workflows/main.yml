@@ -25,7 +25,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Debug Environment
         run: |
@@ -34,7 +34,7 @@ jobs:
           npx vite -v
 
       - name: Build web app
-        run: npx vite build --debug
+        run: npm run build
 
       - name: Debug dist folder
         run: |
