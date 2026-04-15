@@ -36,18 +36,14 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Debug dist folder
+      - name: Prep Android and Sync
         run: |
-          ls -la
-          ls -R dist || echo "dist NOT FOUND"
-
-      - name: Capacitor Sync
-        run: npx cap sync android
+          chmod +x android/gradlew || true
+          npx cap sync android --verbose
 
       - name: Build Android APK
         run: |
           cd android
-          chmod +x gradlew
           ./gradlew assembleDebug
 
       - name: Upload to Firebase App Distribution
