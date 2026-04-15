@@ -3,13 +3,12 @@ import { getDatabase } from "firebase/database";
 
 // Reemplaza con tus credenciales de Firebase
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "tu-proyecto.firebaseapp.com",
-  databaseURL: "https://tu-proyecto.firebaseio.com",
-  projectId: "tu-proyecto",
-  storageBucket: "tu-proyecto.appspot.com",
-  messagingSenderId: "TU_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyCodAOaHqWpxVA2AALfZUBxAWMO3fpfZ58",
+  authDomain: "aplicacion-de-emergencia.firebaseapp.com",
+  projectId: "aplicacion-de-emergencia",
+  storageBucket: "aplicacion-de-emergencia.firebasestorage.app",
+  messagingSenderId: "31851441287",
+  appId: "1:31851441287:web:21b17de1df2d07dd48dc22"
 };
 
 // Inicializar Firebase
