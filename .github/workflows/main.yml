@@ -27,11 +27,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Debug Environment
+        run: |
+          node -v
+          npm -v
+          npx vite -v
+
       - name: Build web app
-        run: npm run build
+        run: npx vite build --debug
 
       - name: Debug dist folder
-        run: ls -R dist
+        run: |
+          ls -la
+          ls -R dist || echo "dist NOT FOUND"
 
       - name: Capacitor Sync
         run: npx cap sync android
